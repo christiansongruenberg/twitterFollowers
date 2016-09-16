@@ -11,17 +11,7 @@ var client = new Twitter({
 });
 
 var screenName = 'Sam___Hurley';
-var next_cursor_file = `${screenName}_next_cursor`;
-var next_cursor;
-if(fs.existsSync(next_cursor_file)){
-    next_cursor = fs.readFileSync(next_cursor_file, 'utf8');
-}else{
-    next_cursor = -1;
-}
-var followers_file = `${screenName}_followers.csv`;
-if(!fs.existsSync(followers_file)){
-    fs.appendFileSync(followers_file, "Screen Name, Description, User ID, Followers Count \n")
-}
+
 
 function processUsers(error, data, response){
 
@@ -35,9 +25,11 @@ function processUsers(error, data, response){
 
         data.users.forEach( u => {
             fs.appendFileSync(`${screenName}_followers.csv`,`${u.screen_name}, "${u.description}", ${u.id_str}, ${u.followers_count} \n`)
-            fs.writeFileSync(`${screenName}_next_cursor`, data.next_cursor_str);
-            fs.writeFileSync(`${screenName}_headers`, JSON.stringify(response.headers));
+
         });
+
+        fs.writeFileSync(`${screenName}_next_cursor`, data.next_cursor_str);
+        fs.writeFileSync(`${screenName}_headers`, JSON.stringify(response.headers));
         
         var next_cursor = data.next_cursor_str;
         if(next_cursor > 0 ){
@@ -49,5 +41,18 @@ function processUsers(error, data, response){
 }
 
 setInterval(function() {
+
+    var next_cursor_file = `${screenName}_next_cursor`;
+    var next_cursor;
+    if(fs.existsSync(next_cursor_file)){
+        next_cursor = fs.readFileSync(next_cursor_file, 'utf8');
+    }else{
+        next_cursor = -1;
+    }
+    var followers_file = `${screenName}_followers.csv`;
+    if(!fs.existsSync(followers_file)){
+        fs.appendFileSync(followers_file, "Screen Name, Description, User ID, Followers Count \n")
+    }
+
     client.get('followers/list',{screen_name: screenName, count: 200, cursor: next_cursor}, processUsers);
 }, 15*60*1000);
