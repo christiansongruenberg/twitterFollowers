@@ -1,0 +1,23 @@
+{
+  "name": "twitter-followers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christiansongruenberg/twitterFollowers.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/christiansongruenberg/twitterFollowers/issues"
+  },
+  "homepage": "https://github.com/christiansongruenberg/twitterFollowers#readme",
+  "dependencies": {
+    "request": "^2.74.0",
+    "twitter": "^1.4.0"
+  }
+}
