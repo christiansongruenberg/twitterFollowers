@@ -10,11 +10,11 @@ var client = new Twitter({
     bearer_token: 'AAAAAAAAAAAAAAAAAAAAAAp1VgAAAAAAHsmdlrFthRUlLj%2BOH6Pz8S6jV7w%3DsGpOWn3VwPEaw29qY2ZVGHREUsjVoI6KG14rWm8zufaneX1LDC'
 });
 
-var screenName = 'Sam___Hurley';
+var screenName = 'ScottDistasio';
 
 
 function processUsers(error, data, response){
-
+    fs.writeFileSync('followers', JSON.stringify(data.users[0]))
     if(error) {
         fs.writeFileSync(`${screenName}_last_error`, error.message);
         throw error
@@ -24,7 +24,41 @@ function processUsers(error, data, response){
         // process user stuff
 
         data.users.forEach( u => {
-            fs.appendFileSync(`${screenName}_followers.csv`,`${u.screen_name}, "${u.description}", ${u.id_str}, ${u.followers_count} \n`)
+            var followerRow = [
+                u.name,
+                u.id,
+                u.screen_name,
+                sanitize(u.description),
+                u.url,
+                u.verified,
+                u.followers_count,
+                u.friends_count,
+                Math.round(u.followers_count/u.friends_count*10)/10 + ' : 1 -> followers:following',
+                u.friends_count,
+                u.listed_count,
+                u.status ? u.status.retweet_count : '',
+                u.created_at,
+                u.statuses_count,
+                u.favourites_count,
+                u.lang,
+                u.location,
+                u.time_zone,
+                u.status ? u.status.place ? u.status.place.country : '' : '',
+                u.status ? u.status.created_at : '',
+                u.status ? u.status.id_str : '',
+                u.status ? sanitize(u.status.text): '',
+                u.status ? u.status.entities.hashtags.map(function(h){ return h.text }).join(' ') : '',
+                u.status ? u.status.entities.symbols.toString() : '',
+                u.status ? u.status.entities.user_mentions.map(function(u){ return u.screen_name }).join(' ') : '',
+                u.status ? u.status.entities.urls.map(function(u){ return u.url}).join(' ') : '',
+                u.status ? u.status.place ? u.status.place.name : '' : '',
+                u.status ? u.status.place ? u.status.place.country : '' : '',
+                u.status ? u.status.in_reply_to_screen_name : '',
+                u.status ? u.status.in_reply_to_status_id : '',
+                u.status ? u.status.retweet_count : '',
+                u.status ? u.status.favorite_count : ''
+            ];
+            fs.appendFileSync(`${screenName}_followers.csv`,createRowStringFromArray(followerRow))
 
         });
 
@@ -33,14 +67,14 @@ function processUsers(error, data, response){
         
         var next_cursor = data.next_cursor_str;
         if(next_cursor > 0 ){
-            client.get('followers/list',{screen_name: screenName, count: 200, cursor: next_cursor}, processUsers);    
+            client.get('followers/list',{screen_name: screenName, count: 200, cursor: next_cursor}, processUsers);
         }
         
     }
 
 }
 
-setInterval(function() {
+
 
     var next_cursor_file = `${screenName}_next_cursor`;
     var next_cursor;
@@ -51,8 +85,87 @@ setInterval(function() {
     }
     var followers_file = `${screenName}_followers.csv`;
     if(!fs.existsSync(followers_file)){
-        fs.appendFileSync(followers_file, "Screen Name, Description, User ID, Followers Count \n")
+        var mainHeaders = ["Basic Information",
+            "",
+            "",
+            "",
+            "",
+            "Influence",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Activity",
+            "",
+            "",
+            "Demographics",
+            "",
+            "",
+            "",
+            "Latest Tweet",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "If Reply",
+            "Tweet ID",
+            "Latest Tweet Engagement",
+            ""
+        ];
+
+        var headers = ["Name",
+            "ID",
+            "Screen Name",
+            "Description",
+            "URL",
+            "Verified",
+            "Followers",
+            "Following",
+            "Ratio",
+            "Friends",
+            "Lists on",
+            "Retweets of Latest Post",
+            "Created Account",
+            "Tweets",
+            "Favourites",
+            "Language",
+            "Profile Location",
+            "Timezone",
+            "Latest Location",
+            "Created At",
+            "ID",
+            "Tweet",
+            "Hashtags",
+            "Symbols",
+            "Mentions",
+            "URLs",
+            "Place",
+            "Location",
+            "Reply To",
+            "Original Tweet ID",
+            "Retweets",
+            "Favourites"];
+        fs.appendFileSync(followers_file, screenName + " Crowdbabble Follower Download \n \n");
+        fs.appendFileSync(followers_file, createRowStringFromArray(mainHeaders));
+        fs.appendFileSync(followers_file, createRowStringFromArray(headers));
     }
 
     client.get('followers/list',{screen_name: screenName, count: 200, cursor: next_cursor}, processUsers);
-}, 15*60*1000);
+
+function createRowStringFromArray(arr){
+    return arr.reduce((row, value) => {
+        return row + '"' + value + '"' + ',';
+    }, '') + "\n"
+}
+
+function sanitize(text){
+    return text.replace(/"/g, "'").replace(/\n/g, ' ')
+}
+
+
