@@ -10,11 +10,10 @@ var client = new Twitter({
     bearer_token: 'AAAAAAAAAAAAAAAAAAAAAAp1VgAAAAAAHsmdlrFthRUlLj%2BOH6Pz8S6jV7w%3DsGpOWn3VwPEaw29qY2ZVGHREUsjVoI6KG14rWm8zufaneX1LDC'
 });
 
-var screenName = 'ScottDistasio';
+var screenName = 'Iconosquare';
 
 
 function processUsers(error, data, response){
-    fs.writeFileSync('followers', JSON.stringify(data.users[0]))
     if(error) {
         fs.writeFileSync(`${screenName}_last_error`, error.message);
         throw error
@@ -66,16 +65,16 @@ function processUsers(error, data, response){
         fs.writeFileSync(`${screenName}_headers`, JSON.stringify(response.headers));
         
         var next_cursor = data.next_cursor_str;
-        if(next_cursor > 0 ){
+/*        if(next_cursor > 0 ){
             client.get('followers/list',{screen_name: screenName, count: 200, cursor: next_cursor}, processUsers);
-        }
+        }*/
         
     }
 
 }
 
 
-
+setInterval(function(){
     var next_cursor_file = `${screenName}_next_cursor`;
     var next_cursor;
     if(fs.existsSync(next_cursor_file)){
@@ -157,6 +156,8 @@ function processUsers(error, data, response){
     }
 
     client.get('followers/list',{screen_name: screenName, count: 200, cursor: next_cursor}, processUsers);
+}, 35*1000);
+
 
 function createRowStringFromArray(arr){
     return arr.reduce((row, value) => {
